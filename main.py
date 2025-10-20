@@ -31,6 +31,9 @@ while True:
         print("Error: Could not read from camera")
         break
         
+    # Flip the image horizontally for more intuitive control
+    img = cv2.flip(img, 1)
+    
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     results = hands.process(img_rgb)
 
@@ -48,12 +51,21 @@ while True:
                 middle_tip = lm_list[12]  # middle fingertip
                 ring_tip = lm_list[16]  # ring fingertip
                 pinky_tip = lm_list[20]  # pinky fingertip
+                wrist = lm_list[0]  # wrist point
                 
-                # Move mouse with index finger
-                x, y = index_tip
+                # Calculate center of fist (average of all fingertips and wrist)
+                fist_center_x = (index_tip[0] + middle_tip[0] + ring_tip[0] + pinky_tip[0] + wrist[0]) / 5
+                fist_center_y = (index_tip[1] + middle_tip[1] + ring_tip[1] + pinky_tip[1] + wrist[1]) / 5
+                
+                # Move mouse with center of fist
+                x, y = int(fist_center_x), int(fist_center_y)
                 screen_x = np.interp(x, (0, w), (0, screen_w))
                 screen_y = np.interp(y, (0, h), (0, screen_h))
                 pyautogui.moveTo(screen_x, screen_y)
+                
+                # Draw center point of fist
+                cv2.circle(img, (x, y), 8, (255, 255, 255), -1)  # White center dot
+                cv2.circle(img, (x, y), 12, (0, 255, 255), 2)   # Yellow outline
 
                 # Calculate distances for gesture detection
                 thumb_index_dist = np.hypot(thumb_tip[0] - index_tip[0], thumb_tip[1] - index_tip[1])
@@ -108,12 +120,13 @@ while True:
             mp_draw.draw_landmarks(img, handLms, mp_hands.HAND_CONNECTIONS)
 
     # Add instruction text overlay
-    cv2.putText(img, "Gesture Controls:", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-    cv2.putText(img, "Thumb + Index = Left Click", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-    cv2.putText(img, "Index + Middle = Right Click", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-    cv2.putText(img, "Index + Middle + Ring = Double Click", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1)
-    cv2.putText(img, "All Fingers Together = Scroll Up", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
-    cv2.putText(img, "Press 'q' to quit", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    cv2.putText(img, "Fist-Controlled Mouse:", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    cv2.putText(img, "Move fist to control cursor", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+    cv2.putText(img, "Thumb + Index = Left Click", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    cv2.putText(img, "Index + Middle = Right Click", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+    cv2.putText(img, "Index + Middle + Ring = Double Click", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1)
+    cv2.putText(img, "All Fingers Together = Scroll Up", (10, 140), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+    cv2.putText(img, "Press 'q' to quit", (10, 170), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
     cv2.imshow("Vision Cursor", img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
