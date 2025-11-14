@@ -62,12 +62,3 @@ On macOS, you may need to grant camera permissions:
 4. **Mouse Control**: PyAutoGUI moves the mouse cursor based on finger position
 5. **Click Detection**: Monitors distance between thumb and index finger for clicks
 
-## Troubleshooting
-
-- **Camera not working**: Ensure camera permissions are granted and no other apps are using the camera
-- **Module not found errors**: Make sure all dependencies are installed correctly
-- **Poor tracking**: Ensure good lighting and keep your hand visible in the camera frame
-
-## License
-
-This project is open source and available under the MIT License.
